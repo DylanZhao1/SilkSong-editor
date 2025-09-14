@@ -1,6 +1,0 @@
-# GitHub account: DylanZhao1
-Host github.com
-    HostName github.com
-    User git
-    IdentityFile C:\Users\Dylan_ZHAO\.ssh\id_ed25519_dylanzhao1
-    IdentitiesOnly yes
