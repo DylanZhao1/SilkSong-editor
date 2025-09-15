@@ -1,2 +1,4 @@
 pycryptodome==3.19.0
 tkinter
+customtkinter>=5.2.2
+darkdetect>=0.8.0

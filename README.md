@@ -1,4 +1,4 @@
-# SilkSong 存档编辑器
+# 🎮 SilkSong 存档编辑器
 
 ## 项目文件结构
 
@@ -7,14 +7,14 @@ Silk/
 ├── modules/               # 核心模块目录
 │   ├── __init__.py        # 包初始化文件
 │   ├── crypto_utils.py    # 加密解密工具
-│   ├── editor_ui.py       # 编辑器UI界面
+│   ├── modern_editor_ui.py # 编辑器UI界面
 │   ├── extract_keys.py    # 键提取工具
 │   └── file_utils.py      # 文件操作工具
 ├── data/                  # 数据文件目录
 │   ├── __init__.py        # 包初始化文件
 │   ├── key_example.json   # 示例键配置
 │   └── key_type.json      # 键类型配置
-├── main.py                # 主程序入口
+├── modern_main.py         # 主程序入口
 ├── requirements.txt       # 依赖项列表
 ├── README.md              # 项目说明文档
 ├── backups/               # 备份文件目录
@@ -22,9 +22,9 @@ Silk/
 ```
 ## 使用说明
 1. 备份您的原始存档文件
-2. 运行 `main.py` 启动编辑器：
+2. 运行 `modern_main.py` 启动编辑器：
    ```
-   python main.py
+   python mordern_main.py
    ```
 3. 点击「文件」->「打开」，选择您的存档文件（.dat 或 .json 格式）
 4. 在树形视图中浏览存档数据结构，找到您想要修改的值
@@ -39,12 +39,12 @@ Silk/
 - 本工具仅供学习和研究使用
 
 ### 依赖项
-
-本工具依赖以下Python库：
 - pycryptodome==3.19.0
 - tkinter（Python标准库）
+- customtkinter>=5.2.2
+- darkdetect>=0.8.0
 
-可以通过以下命令安装依赖：
-```
+可以通过以下命令安装所有依赖：
+```bash
 pip install -r requirements.txt
 ```

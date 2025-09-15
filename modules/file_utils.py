@@ -122,24 +122,10 @@ class FileUtils:
                 with open(file_path, 'w', encoding='utf-8') as f:
                     json.dump(data, f, ensure_ascii=False, indent=2)
             
-            # 同时保存一份user1.dat文件到游戏目录，确保游戏能读取
-            success_game_save = False
-            if update_game_save:
-                game_dat_path = os.path.join(os.path.dirname(file_path), 'user1.dat')
-                json_str = json.dumps(data, ensure_ascii=False)
-                encrypted_data = CryptoUtils.encrypt_data(json_str)
-                if encrypted_data:
-                    with open(game_dat_path, 'wb') as f:
-                        f.write(encrypted_data)
-                    if self.status_callback:
-                        self.status_callback(f'已保存: {os.path.basename(file_path)}, 备份至: {backup_name}, 同时更新游戏存档')
-                    messagebox.showinfo('成功', f'文件已保存，备份至: {backup_path}\n同时已更新游戏存档: {game_dat_path}')
-                    success_game_save = True
-            
-            if not success_game_save:
-                if self.status_callback:
-                    self.status_callback(f'已保存: {os.path.basename(file_path)}, 备份至: {backup_name}')
-                messagebox.showinfo('成功', f'文件已保存，备份至: {backup_path}')
+            # 保存成功提示
+            if self.status_callback:
+                self.status_callback(f'已保存: {os.path.basename(file_path)}, 备份至: {backup_name}')
+            messagebox.showinfo('成功', f'文件已保存，备份至: {backup_path}')
             
             return True
             
