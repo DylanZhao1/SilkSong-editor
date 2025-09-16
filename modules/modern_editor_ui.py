@@ -36,12 +36,160 @@ class ModernEditorUI:
         self.file_utils = FileUtils(self.update_status)
         
         # 创建UI组件
+        self._create_menu()
         self._create_header()
         self._create_main_content()
         self._create_status_bar()
         
         # 绑定关闭事件
         self.root.protocol("WM_DELETE_WINDOW", self.on_close)
+    
+    def _create_menu(self):
+        """
+        创建菜单栏
+        """
+        # 创建菜单栏
+        self.menu_bar = ctk.CTkFrame(self.root, height=30)
+        self.menu_bar.pack(fill="x")
+        
+        # 菜单状态变量
+        self.file_menu_open = False
+        self.help_menu_open = False
+        self.current_menu = None
+        
+        # 文件菜单按钮
+        self.file_menu_button = ctk.CTkButton(
+            self.menu_bar,
+            text="文件",
+            width=60,
+            height=25,
+            command=self._show_file_menu
+        )
+        self.file_menu_button.pack(side="left", padx=5, pady=2)
+        
+        # 帮助菜单按钮
+        self.help_menu_button = ctk.CTkButton(
+            self.menu_bar,
+            text="帮助",
+            width=60,
+            height=25,
+            command=self._show_help_menu
+        )
+        self.help_menu_button.pack(side="left", padx=5, pady=2)
+        
+    def _reset_menu_state(self):
+        """
+        重置菜单状态
+        """
+        self.file_menu_open = False
+        self.help_menu_open = False
+        self.current_menu = None
+    
+    def _show_file_menu(self):
+        """
+        显示或隐藏文件菜单
+        """
+        # 如果当前有其他菜单打开，先关闭它
+        if self.current_menu and self.current_menu.winfo_exists():
+            self.current_menu.destroy()
+            # 如果是同一个菜单被再次点击，则只需关闭
+            if self.file_menu_open:
+                self._reset_menu_state()
+                return
+        
+        # 创建弹出菜单
+        menu = ctk.CTkToplevel(self.root)
+        menu.geometry(f"+{self.root.winfo_rootx()+10}+{self.root.winfo_rooty()+60}")
+        menu.overrideredirect(True)  # 无边框窗口
+        menu.attributes("-topmost", True)  # 置顶
+        
+        # 更新菜单状态
+        self.file_menu_open = True
+        self.help_menu_open = False
+        self.current_menu = menu
+        
+        # 菜单项
+        open_button = ctk.CTkButton(
+            menu,
+            text="打开文件",
+            command=lambda: [menu.destroy(), self.load_file(), self._reset_menu_state()],
+            width=120,
+            height=30,
+            anchor="w"
+        )
+        open_button.pack(fill="x", padx=2, pady=2)
+        
+        save_button = ctk.CTkButton(
+            menu,
+            text="保存",
+            command=lambda: [menu.destroy(), self.save_file(), self._reset_menu_state()],
+            width=120,
+            height=30,
+            anchor="w",
+            state="normal" if self.data else "disabled"
+        )
+        save_button.pack(fill="x", padx=2, pady=2)
+        
+        save_as_button = ctk.CTkButton(
+            menu,
+            text="另存为",
+            command=lambda: [menu.destroy(), self.save_as_game_file(), self._reset_menu_state()],
+            width=120,
+            height=30,
+            anchor="w",
+            state="normal" if self.data else "disabled"
+        )
+        save_as_button.pack(fill="x", padx=2, pady=2)
+        
+        exit_button = ctk.CTkButton(
+            menu,
+            text="退出",
+            command=lambda: [menu.destroy(), self.on_close(), self._reset_menu_state()],
+            width=120,
+            height=30,
+            anchor="w"
+        )
+        exit_button.pack(fill="x", padx=2, pady=2)
+        
+        # 点击其他地方关闭菜单
+        menu.bind("<FocusOut>", lambda e: [menu.destroy(), self._reset_menu_state()])
+    
+    def _show_help_menu(self):
+        """
+        显示或隐藏帮助菜单
+        """
+        # 如果当前有其他菜单打开，先关闭它
+        if self.current_menu and self.current_menu.winfo_exists():
+            self.current_menu.destroy()
+            # 如果是同一个菜单被再次点击，则只需关闭
+            if self.help_menu_open:
+                self._reset_menu_state()
+                return
+        
+        # 创建弹出菜单
+        menu = ctk.CTkToplevel(self.root)
+        menu.geometry(f"+{self.root.winfo_rootx()+70}+{self.root.winfo_rooty()+60}")
+        menu.overrideredirect(True)  # 无边框窗口
+        menu.attributes("-topmost", True)  # 置顶
+        
+        # 更新菜单状态
+        self.help_menu_open = True
+        self.file_menu_open = False
+        self.current_menu = menu
+        
+        # 菜单项
+        about_button = ctk.CTkButton(
+            menu,
+            text="关于",
+            command=lambda: [menu.destroy(), self.show_about(), self._reset_menu_state()],
+            width=120,
+            height=30,
+            anchor="w"
+        )
+        about_button.pack(fill="x", padx=2, pady=2)
+        
+        # 点击其他地方关闭菜单
+        menu.bind("<FocusOut>", lambda e: [menu.destroy(), self._reset_menu_state()])
     
     def _create_header(self):
         """
@@ -64,35 +212,7 @@ class ModernEditorUI:
         button_frame = ctk.CTkFrame(header_frame, fg_color="transparent")
         button_frame.pack(side="right", padx=20, pady=20)
         
-        # 文件操作按钮
-        self.open_button = ctk.CTkButton(
-            button_frame,
-            text="📁 打开文件",
-            command=self.load_file,
-            width=120,
-            height=35
-        )
-        self.open_button.pack(side="left", padx=5)
-        
-        self.save_button = ctk.CTkButton(
-            button_frame,
-            text="💾 保存",
-            command=self.save_file,
-            width=100,
-            height=35,
-            state="disabled"
-        )
-        self.save_button.pack(side="left", padx=5)
-        
-        self.save_as_button = ctk.CTkButton(
-            button_frame,
-            text="📤 另存为",
-            command=self.save_as_game_file,
-            width=120,
-            height=35,
-            state="disabled"
-        )
-        self.save_as_button.pack(side="left", padx=5)
+        # 文件操作按钮已移至菜单栏，此处不再显示
         
         # 搜索框
         search_frame = ctk.CTkFrame(button_frame, fg_color="transparent")
@@ -182,7 +302,7 @@ class ModernEditorUI:
         # 编辑面板标题
         edit_title = ctk.CTkLabel(
             right_frame, 
-            text="✏️ 数值编辑器", 
+            text="数值编辑器", 
             font=ctk.CTkFont(size=16, weight="bold")
         )
         edit_title.pack(pady=(20, 10))
@@ -451,9 +571,8 @@ class ModernEditorUI:
                     self.modified = False
                     self.populate_tree_modern()
                     
-                    # 启用按钮
-                    self.save_button.configure(state="normal")
-                    self.save_as_button.configure(state="normal")
+                    # 文件已加载，菜单中的保存选项将可用
+                    # 注意：按钮已移至菜单栏，不再需要在此处更新按钮状态
                     
                     # 更新文件信息
                     filename = os.path.basename(file_path)
@@ -1232,7 +1351,7 @@ class ModernEditorUI:
     
     def search_keys(self, event=None):
         """
-        搜索包含关键词的key
+        搜索包含关键词的键或值
         """
         if not self.data:
             messagebox.showwarning("警告", "请先加载文件")
@@ -1254,28 +1373,48 @@ class ModernEditorUI:
         self._search_in_data(self.data, "")
         
         if self.search_results:
-            # 显示搜索结果
-            self._display_search_results()
-            self.update_status(f"找到 {len(self.search_results)} 个匹配项")
+            # 重置分页状态
+            current_page = 1
+            items_per_page = 20  # 每页显示的结果数量
+            
+            # 显示搜索结果（分页加载）
+            self._display_search_results(page=current_page, items_per_page=items_per_page)
+            self.update_status(f"找到 {len(self.search_results)} 个匹配项，分页显示")
         else:
-            messagebox.showinfo("搜索结果", f"未找到包含 '{search_term}' 的键")
+            messagebox.showinfo("搜索结果", f"未找到包含 '{search_term}' 的键或值")
             self.update_status("未找到匹配项")
     
     def _search_in_data(self, data, path_prefix):
         """
-        递归搜索数据中包含关键词的key
+        递归搜索数据中包含关键词的key或value
         """
         if isinstance(data, dict):
             for key, value in data.items():
                 current_path = f"{path_prefix}.{key}" if path_prefix else key
                 
                 # 检查key是否包含搜索词
-                if self.current_search_term in key.lower():
+                key_match = self.current_search_term in key.lower()
+                
+                # 检查value是否包含搜索词（如果value是字符串类型）
+                value_match = False
+                if isinstance(value, str):
+                    value_match = self.current_search_term in value.lower()
+                elif isinstance(value, (int, float, bool)):
+                    # 对于数字和布尔值，转换为字符串后比较
+                    value_match = self.current_search_term in str(value).lower()
+                
+                # 如果key或value匹配，添加到结果中
+                if key_match or value_match:
+                    match_type = "键" if key_match else "值"
+                    if key_match and value_match:
+                        match_type = "键和值"
+                        
                     self.search_results.append({
                         'path': current_path,
                         'key': key,
                         'value': value,
-                        'type': type(value).__name__
+                        'type': type(value).__name__,
+                        'match_type': match_type
                     })
                 
                 # 递归搜索嵌套数据
@@ -1286,15 +1425,40 @@ class ModernEditorUI:
             for i, item in enumerate(data):
                 current_path = f"{path_prefix}[{i}]" if path_prefix else f"[{i}]"
                 
-                # 对于列表项，如果是字典则搜索其键
+                # 检查列表项的值是否包含搜索词（如果是基本类型）
+                if isinstance(item, str):
+                    if self.current_search_term in item.lower():
+                        self.search_results.append({
+                            'path': current_path,
+                            'key': f"[{i}]",
+                            'value': item,
+                            'type': type(item).__name__,
+                            'match_type': "值"
+                        })
+                elif isinstance(item, (int, float, bool)):
+                    # 对于数字和布尔值，转换为字符串后比较
+                    if self.current_search_term in str(item).lower():
+                        self.search_results.append({
+                            'path': current_path,
+                            'key': f"[{i}]",
+                            'value': item,
+                            'type': type(item).__name__,
+                            'match_type': "值"
+                        })
+                
+                # 对于列表项，如果是字典或列表则递归搜索
                 if isinstance(item, dict):
                     self._search_in_data(item, current_path)
                 elif isinstance(item, list):
                     self._search_in_data(item, current_path)
     
-    def _display_search_results(self):
+    def _display_search_results(self, page=1, items_per_page=20):
         """
-        显示搜索结果
+        显示搜索结果，支持分页加载
+        
+        Args:
+            page: 当前页码，从1开始
+            items_per_page: 每页显示的结果数量
         """
         # 清空当前树视图
         for widget in self.tree_scroll_frame.winfo_children():
@@ -1324,9 +1488,64 @@ class ModernEditorUI:
         )
         back_button.pack(anchor="w")
         
-        # 显示每个搜索结果
-        for result in self.search_results:
+        # 计算当前页的结果范围
+        start_idx = (page - 1) * items_per_page
+        end_idx = min(start_idx + items_per_page, len(self.search_results))
+        current_page_results = self.search_results[start_idx:end_idx]
+        
+        # 显示当前页的搜索结果
+        for result in current_page_results:
             self._create_search_result_item(result)
+        
+        # 添加分页控制框架
+        pagination_frame = ctk.CTkFrame(self.tree_scroll_frame, fg_color="transparent")
+        pagination_frame.pack(fill="x", padx=10, pady=10)
+        
+        # 显示页码信息
+        total_pages = (len(self.search_results) + items_per_page - 1) // items_per_page
+        page_info = ctk.CTkLabel(
+            pagination_frame,
+            text=f"第 {page}/{total_pages} 页",
+            font=ctk.CTkFont(size=12)
+        )
+        page_info.pack(side="left", padx=5)
+        
+        # 添加分页按钮
+        if page > 1:
+            prev_button = ctk.CTkButton(
+                pagination_frame,
+                text="⬅️ 上一页",
+                command=lambda: self._change_search_page(page-1, items_per_page),
+                width=80,
+                height=25,
+                font=ctk.CTkFont(size=10)
+            )
+            prev_button.pack(side="left", padx=5)
+        
+        if page < total_pages:
+            next_button = ctk.CTkButton(
+                pagination_frame,
+                text="下一页 ➡️",
+                command=lambda: self._change_search_page(page+1, items_per_page),
+                width=80,
+                height=25,
+                font=ctk.CTkFont(size=10)
+            )
+            next_button.pack(side="left", padx=5)
+        
+        # 页面加载完成后，将滚动条重置到顶部
+        self.tree_scroll_canvas.yview_moveto(0.0)
+    
+    def _change_search_page(self, page, items_per_page):
+        """
+        切换搜索结果页面，并确保滚动条重置到顶部
+        
+        Args:
+            page: 目标页码
+            items_per_page: 每页显示的结果数量
+        """
+        # 显示新的搜索结果页面
+        self._display_search_results(page=page, items_per_page=items_per_page)
     
     def _create_search_result_item(self, result):
         """
@@ -1344,6 +1563,23 @@ class ModernEditorUI:
         )
         path_label.pack(anchor="w", padx=10, pady=(5, 0))
         
+        # 匹配类型显示（如果有）
+        if 'match_type' in result:
+            match_type_colors = {
+                "键": ("#16A34A", "#22C55E"),  # 绿色
+                "值": ("#9333EA", "#A855F7"),  # 紫色
+                "键和值": ("#EA580C", "#F97316")  # 橙色
+            }
+            match_color = match_type_colors.get(result['match_type'], ("#6B7280", "#9CA3AF"))
+            
+            match_type_label = ctk.CTkLabel(
+                result_frame,
+                text=f"🎯 匹配: {result['match_type']}",
+                font=ctk.CTkFont(size=10, weight="bold"),
+                text_color=match_color
+            )
+            match_type_label.pack(anchor="w", padx=10, pady=(0, 0))
+        
         # 键值显示
         if isinstance(result['value'], (dict, list)):
             value_text = f"{result['type']} ({len(result['value'])} items)"
@@ -1353,16 +1589,28 @@ class ModernEditorUI:
         key_value_frame = ctk.CTkFrame(result_frame, fg_color="transparent")
         key_value_frame.pack(fill="x", padx=10, pady=5)
         
-        # 高亮显示匹配的key
+        # 高亮显示匹配的key和value
         key_text = result['key']
-        highlighted_key = key_text.replace(
-            self.current_search_term, 
-            f"🔥{self.current_search_term.upper()}🔥"
-        )
+        highlighted_key = key_text
+        
+        # 如果匹配类型包含"键"，高亮显示key中的搜索词
+        if 'match_type' in result and ("键" in result['match_type']):
+            highlighted_key = key_text.replace(
+                self.current_search_term, 
+                f"🔥{self.current_search_term.upper()}🔥"
+            )
+        
+        # 如果匹配类型包含"值"且值是字符串，高亮显示value中的搜索词
+        highlighted_value = value_text
+        if 'match_type' in result and ("值" in result['match_type']) and isinstance(result['value'], (str, int, float, bool)):
+            highlighted_value = value_text.replace(
+                self.current_search_term,
+                f"🔥{self.current_search_term.upper()}🔥"
+            )
         
         key_label = ctk.CTkLabel(
             key_value_frame,
-            text=f"🔑 {highlighted_key}: {value_text}",
+            text=f"🔑 {highlighted_key}: {highlighted_value}",
             font=ctk.CTkFont(size=11)
         )
         key_label.pack(anchor="w")
